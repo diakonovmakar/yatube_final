@@ -144,7 +144,7 @@ def post_edit(request, username, post_id):
             'post:post_detail',
             username=author.username,
             post_id=post_id)
-    context = {'form': form, 'is_edit': True}
+    context = {'form': form, 'post': post, 'is_edit': True}
     return render(request, 'posts/create_post.html', context)
 
 
