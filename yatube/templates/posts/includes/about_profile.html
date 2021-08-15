@@ -1,0 +1,30 @@
+<div class="card">
+  <div class="card-header">
+    {% if author.username != user.username %}
+      {% if following %}
+        <a
+            class="btn btn-md btn-danger"
+            style="float: right;"
+            href="{% url 'post:profile_unfollow' author.username %}" role="button">
+            <strong>Отписаться</strong>
+        </a>
+      {% else %}
+        <a
+            class="btn btn-md btn-success"
+            style="float: right;"
+            href="{% url 'post:profile_follow' author.username %}" role="button">
+            <strong>Подписаться</strong>
+        </a>
+      {% endif %}
+    {% endif %}
+      <a name="post_{{ post.id }}" href="{% url 'post:profile' author.username %}">
+        <strong class="d-block text-gray-dark mt-2">{{ author.get_full_name }}</strong>
+      </a>
+  </div>
+  <div class="card-body">
+    <p>Всего постов: {{ count }}</p>
+  </div>
+</div>
+
+
+
