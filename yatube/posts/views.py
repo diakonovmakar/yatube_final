@@ -11,20 +11,20 @@ from .models import Follow, Group, Post, User
 def page_not_found(request, exception):
     return render(
         request,
-        "misc/404.html",
-        {"path": request.path},
+        'misc/404.html',
+        {'path': request.path},
         status=404
     )
 
 
 def server_error(request):
-    return render(request, "misc/500.html", status=500)
+    return render(request, 'misc/500.html', status=500)
 
 
 def index(request):
     post_list = cache.get('index_page')
     if post_list is None:
-        post_list = Post.objects.order_by('-pub_date')
+        post_list = Post.objects.select_related().order_by('-pub_date')
         cache.set('index_page', post_list, timeout=20)
 
     paginator = set_up_paginator(post_list)
@@ -66,10 +66,7 @@ def profile(request, username):
 
     following = False
     if request.user.is_authenticated:
-        following = Follow.objects.filter(
-            author=user,
-            user=request.user).exists()
-        if following:
+        if Follow.objects.filter(author=user, user=request.user).exists():
             following = True
 
     context = {
@@ -153,7 +150,6 @@ def add_comment(request, username, post_id):
     form = CommentForm(request.POST or None)
     post = get_object_or_404(Post, pk=post_id)
     user = get_object_or_404(User, username=username)
-    # comments = post.comments.all().order_by('-created')
     if form.is_valid():
         comment = form.save(commit=False)
         comment.author = user
@@ -166,7 +162,6 @@ def add_comment(request, username, post_id):
     context = {
         'form': form,
         'post': post,
-        # 'comments': comments,
         'is_comment': True}
     return render(request, 'posts/post_detail.html', context)
 
@@ -182,7 +177,7 @@ def follow_index(request):
     title = 'Избранные авторы'
 
     context = {'posts': post_list, 'page': page, 'title': title}
-    return render(request, "posts/follow.html", context)
+    return render(request, 'posts/follow.html', context)
 
 
 @login_required

@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from posts.models import Group, Post
+from posts.models import Follow, Group, Post
 
 User = get_user_model()
 
@@ -37,3 +37,31 @@ class PostsModelTest(TestCase):
             expected_object_name,
             'Black',
             'Method __str__ is working wrong in "Group" class')
+
+
+class FollowModelTest(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.user1 = User.objects.create_user(username='MakarD')
+        cls.user2 = User.objects.create_user(username='AndreyG')
+        cls.follow = Follow.objects.create(
+            user=FollowModelTest.user1,
+            author=FollowModelTest.user2)
+
+    def test_follow(self):
+        expected_follow = Follow.objects.filter(
+            author=FollowModelTest.follow.author,
+            user=FollowModelTest.follow.user).get()
+        self.assertEqual(Follow.objects.count(), 1)
+        self.assertEqual(FollowModelTest.follow.author, expected_follow.author)
+        self.assertEqual(FollowModelTest.follow.user, expected_follow.user)
+
+    def test_unfollow(self):
+        Follow.objects.filter(
+            author=FollowModelTest.follow.author,
+            user=FollowModelTest.follow.user).delete()
+        self.assertEqual(Follow.objects.count(), 0)
+        self.assertFalse(Follow.objects.filter(
+            author=FollowModelTest.follow.author,
+            user=FollowModelTest.follow.user).exists())

@@ -14,6 +14,7 @@ class PostsPagesTests(TestCase):
     def setUpClass(cls) -> None:
         super().setUpClass()
         cls.user = User.objects.create(username='MakarD')
+        cls.user2 = User.objects.create(username='AndreyG')
         cls.group = Group.objects.create(
             title='Black',
             slug='black',
@@ -122,6 +123,37 @@ class PostsPagesTests(TestCase):
         cache.delete('index_page')
         new_response = self.authorized_client.get(reverse('post:index'))
         self.assertEqual(new_response.context['posts'][0], new_first)
+
+    def test_follow_unfollow(self):
+        Post.objects.create(
+            text='bla-bla-bla2',
+            author=PostsPagesTests.user2,
+            group=PostsPagesTests.group
+        )
+        follow_index_response = self.authorized_client.get(reverse(
+            'post:follow_index'))
+
+        self.assertEqual(
+            len(follow_index_response.context['page']), 0)
+        self.authorized_client.get(reverse(
+            'post:profile_follow',
+            kwargs={'username': PostsPagesTests.user2.username}))
+        new_follow_index_response = self.authorized_client.get(reverse(
+            'post:follow_index'))
+
+        self.assertEqual(
+            len(new_follow_index_response.context['page']), 1)
+        self.assertEqual(
+            new_follow_index_response.context['page'][0].author,
+            PostsPagesTests.user2
+        )
+
+        self.authorized_client.get(reverse(
+            'post:profile_unfollow',
+            kwargs={'username': PostsPagesTests.user2.username}))
+
+        self.assertEqual(
+            len(follow_index_response.context['page']), 0)
 
 
 class PaginatorViewsTest(TestCase):

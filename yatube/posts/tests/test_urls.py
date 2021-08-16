@@ -49,6 +49,12 @@ class PostsURLTests(TestCase):
             f'/{username}/{post_id}/edit/': {
                 'code': HTTPStatus.OK.value,
                 'is_logined': True},
+            f'/{username}/follow/': {
+                'code': HTTPStatus.FOUND.value,
+                'is_logined': True},
+            f'/{username}/unfollow/': {
+                'code': HTTPStatus.FOUND.value,
+                'is_logined': True},
             '/new/': {
                 'code': HTTPStatus.OK.value,
                 'is_logined': True},
