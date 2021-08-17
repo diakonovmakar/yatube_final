@@ -24,7 +24,9 @@ def server_error(request):
 def index(request):
     post_list = cache.get('index_page')
     if post_list is None:
-        post_list = Post.objects.select_related().order_by('-pub_date')
+        post_list = Post.objects.select_related(
+            'group',
+            'author').order_by('-pub_date')
         cache.set('index_page', post_list, timeout=20)
 
     paginator = set_up_paginator(post_list)
@@ -66,8 +68,9 @@ def profile(request, username):
 
     following = False
     if request.user.is_authenticated:
-        if Follow.objects.filter(author=user, user=request.user).exists():
-            following = True
+        following = Follow.objects.filter(
+            author=user,
+            user=request.user).exists()
 
     context = {
         'author': user,

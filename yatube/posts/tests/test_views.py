@@ -20,6 +20,11 @@ class PostsPagesTests(TestCase):
             slug='black',
             description='Test description'
         )
+        cls.user2_post = Post.objects.create(
+            text='bla-bla-bla2',
+            author=cls.user2,
+            group=cls.group
+        )
         cls.post = Post.objects.create(
             text='bla-bla-bla',
             author=cls.user,
@@ -124,36 +129,44 @@ class PostsPagesTests(TestCase):
         new_response = self.authorized_client.get(reverse('post:index'))
         self.assertEqual(new_response.context['posts'][0], new_first)
 
-    def test_follow_unfollow(self):
-        Post.objects.create(
-            text='bla-bla-bla2',
-            author=PostsPagesTests.user2,
-            group=PostsPagesTests.group
-        )
-        follow_index_response = self.authorized_client.get(reverse(
+    def test_follow(self):
+        not_follow_index_response = self.authorized_client.get(reverse(
             'post:follow_index'))
 
         self.assertEqual(
-            len(follow_index_response.context['page']), 0)
-        self.authorized_client.get(reverse(
-            'post:profile_follow',
-            kwargs={'username': PostsPagesTests.user2.username}))
-        new_follow_index_response = self.authorized_client.get(reverse(
-            'post:follow_index'))
+            len(not_follow_index_response.context['page']), 0)
+        self.authorized_client.get(
+            reverse(
+                'post:profile_follow',
+                kwargs={'username': PostsPagesTests.user2.username}))
+        follow_index_response = self.authorized_client.get(
+            reverse('post:follow_index'))
 
         self.assertEqual(
-            len(new_follow_index_response.context['page']), 1)
+            len(follow_index_response.context['page']), 1)
         self.assertEqual(
-            new_follow_index_response.context['page'][0].author,
+            follow_index_response.context['page'][0].author,
             PostsPagesTests.user2
         )
 
-        self.authorized_client.get(reverse(
-            'post:profile_unfollow',
-            kwargs={'username': PostsPagesTests.user2.username}))
-
+    def test_unfollow(self):
+        self.authorized_client.get(
+            reverse(
+                'post:profile_follow',
+                kwargs={'username': PostsPagesTests.user2.username}))
+        follow_index_response = self.authorized_client.get(
+            reverse('post:follow_index'))
         self.assertEqual(
-            len(follow_index_response.context['page']), 0)
+            len(follow_index_response.context['page']), 1)
+
+        self.authorized_client.get(
+            reverse(
+                'post:profile_unfollow',
+                kwargs={'username': PostsPagesTests.user2.username}))
+        not_follow_index_response = self.authorized_client.get(
+            reverse('post:follow_index'))
+        self.assertEqual(
+            len(not_follow_index_response.context['page']), 0)
 
 
 class PaginatorViewsTest(TestCase):
